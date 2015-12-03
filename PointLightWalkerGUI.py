@@ -41,13 +41,50 @@ class PointLightWalkerGUI(Tk):
 		Label(menu, text = "Speed").pack(side=LEFT)
 		Spinbox(menu, from_=0, to=1, increment=.1, textvariable=self.delay).pack(side=LEFT)
 		
+		self.blurSigma = StringVar()
+		self.blurSigma.set(3)
+		Label(menu, text = "Blur Sigma").pack(side=LEFT)
+		Spinbox(menu, from_=0, to=15, increment=1, textvariable=self.blurSigma).pack(side=LEFT)
+
+		self.erodeElementSize = StringVar()
+		self.erodeElementSize.set(2)
+		Label(menu, text = "Erode Size").pack(side=LEFT)
+		Spinbox(menu, from_=0, to=20, increment=1, textvariable=self.erodeElementSize).pack(side=LEFT)
+
+		self.dilateElementSize = StringVar()
+		self.dilateElementSize.set(10)
+		Label(menu, text = "Dilate Size").pack(side=LEFT)
+		Spinbox(menu, from_=0, to=15, increment=1, textvariable=self.dilateElementSize).pack(side=LEFT)
+
+		self.thresholdValue = StringVar()
+		self.thresholdValue.set(20)
+		Label(menu, text = "Threshold").pack(side=LEFT)
+		Spinbox(menu, from_=0, to=40, increment=2, textvariable=self.thresholdValue).pack(side=LEFT)
+		
 		# Display video(s) row
-		videoRow = Frame(self)
-		videoRow.pack()
+		videoRow1 = Frame(self)
+		videoRow1.pack()
+		videoRow2 = Frame(self)
+		videoRow2.pack()
 		
 		# Video 
-		self.videoCanvas1 = OpenCVCanvas.OpenCVCanvas(videoRow, height=windowHeight, width=windowWidth)
+		self.videoCanvas1 = OpenCVCanvas.OpenCVCanvas(videoRow1, height=windowHeight, width=windowWidth)
 		self.videoCanvas1.pack(side=LEFT)
+		
+		self.videoCanvas2 = OpenCVCanvas.OpenCVCanvas(videoRow1, height=windowHeight, width=windowWidth)
+		self.videoCanvas2.pack(side=LEFT)
+		
+		self.videoCanvas3 = OpenCVCanvas.OpenCVCanvas(videoRow1, height=windowHeight, width=windowWidth)
+		self.videoCanvas3.pack(side=LEFT)
+		
+		self.videoCanvas4 = OpenCVCanvas.OpenCVCanvas(videoRow2, height=windowHeight, width=windowWidth)
+		self.videoCanvas4.pack(side=LEFT)
+		
+		self.videoCanvas5 = OpenCVCanvas.OpenCVCanvas(videoRow2, height=windowHeight, width=windowWidth)
+		self.videoCanvas5.pack(side=LEFT)		
+		
+		self.videoCanvas6 = OpenCVCanvas.OpenCVCanvas(videoRow2, height=windowHeight, width=windowWidth)
+		self.videoCanvas6.pack(side=LEFT)
 		
 		# Instantiate the CV processing object:
 		self.pointLightWalker = PointLightWalker.PointLightWalker()
@@ -92,11 +129,16 @@ class PointLightWalkerGUI(Tk):
 				img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 				
 				# process the frame
-				result = self.pointLightWalker.process(img)
+				thresholded, dilated, eroded, foregroundMask, blurred = self.pointLightWalker.process(img, int(self.blurSigma.get()), int(self.erodeElementSize.get()), int(self.dilateElementSize.get()), int(self.thresholdValue.get()))
 				# check to make sure we have something to display
 				# (motion detection usually needs to process more than one frame)
-				if result is not None:
-					self.videoCanvas1.publishArray(result)				
+				if thresholded is not None:
+					self.videoCanvas1.publishArray(img)
+					self.videoCanvas2.publishArray(blurred)
+					self.videoCanvas3.publishArray(foregroundMask)
+					self.videoCanvas4.publishArray(eroded)	
+					self.videoCanvas5.publishArray(dilated)
+					self.videoCanvas6.publishArray(thresholded)			
 			
 			# Have we enabled speed control?
 			delay = float(self.delay.get())
