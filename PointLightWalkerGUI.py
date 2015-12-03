@@ -103,6 +103,8 @@ class PointLightWalkerGUI(Tk):
 			
 	def run(self):
 		
+		self.pointLightWalker.clear()
+		
 		# Instantiate an openCV Video capture object
 		cap = cv2.VideoCapture(self.videoFile)
 			
@@ -129,16 +131,16 @@ class PointLightWalkerGUI(Tk):
 				img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 				
 				# process the frame
-				thresholded, dilated, eroded, foregroundMask, blurred = self.pointLightWalker.process(img, int(self.blurSigma.get()), int(self.erodeElementSize.get()), int(self.dilateElementSize.get()), int(self.thresholdValue.get()))
+				result, step4, step3, step2, step1 = self.pointLightWalker.process(img, int(self.blurSigma.get()), int(self.erodeElementSize.get()), int(self.dilateElementSize.get()), int(self.thresholdValue.get()))
 				# check to make sure we have something to display
 				# (motion detection usually needs to process more than one frame)
-				if thresholded is not None:
+				if result is not None:
 					self.videoCanvas1.publishArray(img)
-					self.videoCanvas2.publishArray(blurred)
-					self.videoCanvas3.publishArray(foregroundMask)
-					self.videoCanvas4.publishArray(eroded)	
-					self.videoCanvas5.publishArray(dilated)
-					self.videoCanvas6.publishArray(thresholded)			
+					self.videoCanvas2.publishArray(step1)
+					self.videoCanvas3.publishArray(step2)
+					self.videoCanvas4.publishArray(step3)	
+					self.videoCanvas5.publishArray(step4)
+					self.videoCanvas6.publishArray(result)			
 			
 			# Have we enabled speed control?
 			delay = float(self.delay.get())
