@@ -4,6 +4,7 @@ import PIL
 from PIL import Image, ImageTk
 import numpy as np
 
+# Add numpy image array viewing (with Scaling) to a basic Tkinter canvas
 class OpenCVCanvas(Canvas):
 
 	# Display numpy array as image on GUI			

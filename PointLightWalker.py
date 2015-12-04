@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 
+# Do the PointLightWalker processing
 class PointLightWalker():
 	
 		def __init__(self):			
@@ -11,6 +12,7 @@ class PointLightWalker():
 		def clear(self):
 			self.pMOG = cv2.createBackgroundSubtractorMOG2()
 
+		# for each frame...
 		def process(self, image, blurSigma, erodeElementSize, dilateElementSize, thresholdValue):
 						
 			# Gaussian blur
@@ -70,6 +72,7 @@ class PointLightWalker():
 						
 			return imageIsolate, contourDisplay, dilated, foregroundMask, blurred
 
+		# Center the input image on the given point.  Zeros everywhere new
 		def reCenter(self, image, point, displayCentroid = True):
 			reCentered = np.zeros(image.shape, image.dtype)
 			
@@ -98,7 +101,8 @@ class PointLightWalker():
 				cv2.circle(reCentered, (int(image.shape[1]/2), int(image.shape[0]/2)), 8, (255,0,0), -1)
 			
 			return reCentered
-			
+
+		# Center the input image's height on the given point's Y coordinate.  Zeros everywhere new
 		def reCenterY(self, image, point, displayCentroid = True):
 			reCentered = np.zeros(image.shape, image.dtype)
 			
@@ -122,6 +126,7 @@ class PointLightWalker():
 			
 			return reCentered
 			
+		# Center the input image's width on the given point's X coordinate.  Zeros everywhere new
 		def reCenterX(self, image, point, displayCentroid = True):
 			reCentered = np.zeros(image.shape, image.dtype)
 			
