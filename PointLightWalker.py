@@ -36,34 +36,42 @@ class PointLightWalker():
 			thresholded = cv2.threshold(dilated, thresholdValue, 255, cv2.THRESH_BINARY)[1]
 			
 			# find the contours (shapes) in the processed image
-			contoured = cv2.cvtColor(thresholded, cv2.COLOR_GRAY2RGB)
 			_, contours, hierarchy = cv2.findContours(thresholded, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 			
-			# Look for the biggest contour and display it
+			# empty view to fill below
+			imageIsolate = np.zeros(image.shape, image.dtype)
+			
+			# If we have contours, the biggest should be the person
 			if len(contours) > 0:
+				# find the biggest contour
 				sizes = [cv2.contourArea(x) for x in contours]
 				maxIndex = sizes.index(max(sizes))
-				cv2.drawContours(contoured, contours, maxIndex, (0,255,0), 3)
+				
+				# Outline the biggest contour on the morphed image
+				contourDisplay = cv2.cvtColor(thresholded*255, cv2.COLOR_GRAY2RGB)
+				cv2.drawContours(contourDisplay, contours, maxIndex, (0,255,0), 3)
+
+				# Republish the original image, but only where there's motion
+				imageIsolate = np.zeros(image.shape, image.dtype)
+				cv2.drawContours(imageIsolate, contours, maxIndex, (1,1,1), -1)
+				imageIsolate = np.multiply(imageIsolate, image)
 				
 				# Find the center of mass of the largest contour
 				moments = cv2.moments(contours[maxIndex])
-				centroid = (int(moments['m10']/moments['m00']), int(moments['m01']/moments['m00']))				
-				cv2.circle(contoured, centroid, 10, (255,0,0), -1)
-				
-				# Recenter the contoured display on the centroid
-				centered = self.reCenter(contoured, centroid)
-				
-			# If we didn't find a contour, just leave the final screen blank
-			else:
-				centered = np.zeros(contoured.shape, contoured.dtype)
-						
-			return centered, contoured, dilated, foregroundMask, blurred
+				centroid = (int(moments['m10']/moments['m00']), int(moments['m01']/moments['m00']))		
+										
+				# Recenter x-axis of the contour view and the republished motion view on the centroid
+				imageIsolate = self.reCenterX(imageIsolate, centroid)
+				contourDisplay = self.reCenterX(contourDisplay, centroid)
 
-		def reCenter(self, image, point):
+			# If we didn't find a contour, just leave anything centered blank
+			else:
+				contourDisplay = np.zeros(image.shape, image.dtype)
+						
+			return imageIsolate, contourDisplay, dilated, foregroundMask, blurred
+
+		def reCenter(self, image, point, displayCentroid = True):
 			reCentered = np.zeros(image.shape, image.dtype)
-			
-			print("Point: ",point)
-			print("Image Size: ", image.shape)
 			
 			# remember, point is (x,y) and shape is (rows, cols) or (y,x)
 			left = point[0] - image.shape[1]/2
@@ -84,6 +92,56 @@ class PointLightWalker():
 			
 			# slice the still-visible image portion into reCentered:
 			reCentered[topNew:bottomNew, leftNew:rightNew] = image[topOld:bottomOld,leftOld:rightOld]
+			
+			# If requested, display the centroid
+			if displayCentroid:
+				cv2.circle(reCentered, (int(image.shape[1]/2), int(image.shape[0]/2)), 8, (255,0,0), -1)
+			
+			return reCentered
+			
+		def reCenterY(self, image, point, displayCentroid = True):
+			reCentered = np.zeros(image.shape, image.dtype)
+			
+			# remember, point is (x,y) and shape is (rows, cols) or (y,x)
+			top = point[1] - image.shape[0]/2
+			bottom = point[1] + image.shape[0]/2
+						
+			# Where to slice from in the old image (y,x)? Saturate		
+			topOld = max(0, top)			
+			bottomOld = min(reCentered.shape[0], bottom)
+						
+			topNew = max(0, -top)
+			bottomNew = topNew + (bottomOld - topOld)
+			
+			# slice the still-visible image portion into reCentered:
+			reCentered[topNew:bottomNew, :] = image[topOld:bottomOld,:]
+			
+			# If requested, display the centroid
+			if displayCentroid:
+				cv2.circle(reCentered, (int(point[0]), int(image.shape[0]/2)), 8, (255,0,0), -1)
+			
+			return reCentered
+			
+		def reCenterX(self, image, point, displayCentroid = True):
+			reCentered = np.zeros(image.shape, image.dtype)
+			
+			# remember, point is (x,y) and shape is (rows, cols) or (y,x)
+			left = point[0] - image.shape[1]/2
+			right = point[0] + image.shape[1]/2
+						
+			# Where to slice from in the old image (y,x)? Saturate
+			leftOld = max(0, left)
+			rightOld = min(reCentered.shape[1], right)			
+						
+			leftNew = max(0, -left)
+			rightNew = leftNew + (rightOld - leftOld)
+			
+			# slice the still-visible image portion into reCentered:
+			reCentered[:, leftNew:rightNew] = image[:,leftOld:rightOld]
+			
+			# If requested, display the centroid
+			if displayCentroid:
+				cv2.circle(reCentered, (int(image.shape[1]/2), int(point[1])), 8, (255,0,0), -1)
 			
 			return reCentered
 			
