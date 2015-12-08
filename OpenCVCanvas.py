@@ -16,7 +16,7 @@ class OpenCVCanvas(Canvas):
 			if numpyArray.shape[0] > self.winfo_height() or numpyArray.shape[1] > self.winfo_width():
 				
 				# rows/cols  , y/x
-				arrayRatio = float(numpyArray.shape[0])/numpyArray.shape[0]						
+				arrayRatio = float(numpyArray.shape[0])/numpyArray.shape[1]						
 				canvasRatio = float(self.winfo_height() / self.winfo_width())
 				
 				# array height controls
