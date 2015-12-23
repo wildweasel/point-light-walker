@@ -74,46 +74,27 @@ class PointLightWalkerGUI(Tk):
 
 		# minimum value to survive post-dilation
 		self.thresholdValueC = StringVar()
-		self.thresholdValueC.set(20)
+		self.thresholdValueC.set(160)
 		Label(menu2, text = "Centroid Threshold").pack(side=LEFT)
-		Spinbox(menu2, from_=0, to=40, increment=2, textvariable=self.thresholdValueC).pack(side=LEFT)
-		
-		
-		self.cannyLo = StringVar()
-		self.cannyLo.set(30)
-		Label(menu3, text = "Canny Lo Thresh").pack(side=LEFT)
-		Spinbox(menu3, from_=10, to=100, increment=5, textvariable=self.cannyLo).pack(side=LEFT)
+		Spinbox(menu2, from_=0, to=200, increment=5, textvariable=self.thresholdValueC).pack(side=LEFT)
+				
+		self.hueBins = StringVar()
+		self.hueBins.set(10)
+		Label(menu3, text = "Hue Bins").pack(side=LEFT)
+		Spinbox(menu3, from_=1, to=20, increment=1, textvariable=self.hueBins).pack(side=LEFT)
 
-		self.cannyHi = StringVar()
-		self.cannyHi.set(60)
-		Label(menu3, text = "Canny Hi Thresh").pack(side=LEFT)
-		Spinbox(menu3, from_=10, to=300, increment=5, textvariable=self.cannyHi).pack(side=LEFT)
+		self.hueSlices = StringVar()
+		self.hueSlices.set(3)
+		Label(menu3, text = "Keep Hue Bins").pack(side=LEFT)
+		Spinbox(menu3, from_=1, to=5, increment=1, textvariable=self.hueSlices).pack(side=LEFT)
 		
-		self.blurSigma1 = StringVar()
-		self.blurSigma1.set(0)
-		Label(menu3, text = "Blur sigma 1").pack(side=LEFT)
-		Spinbox(menu3, from_=1, to=9, increment=2, textvariable=self.blurSigma1).pack(side=LEFT)
-
-		self.dilateElementSize1 = StringVar()
-		self.dilateElementSize1.set(2)
-		Label(menu3, text = "Dilate Size 1").pack(side=LEFT)
-		Spinbox(menu3, from_=0, to=15, increment=1, textvariable=self.dilateElementSize1).pack(side=LEFT)
+		self.waterShedDistance = StringVar()
+		self.waterShedDistance.set(20)
+		Label(menu3, text = "Watershed Distance").pack(side=LEFT)
+		Spinbox(menu3, from_=2, to=50, increment=2, textvariable=self.waterShedDistance).pack(side=LEFT)
 		
-		self.erodeElementSize2 = StringVar()
-		self.erodeElementSize2.set(2)
-		Label(menu3, text = "Erode Size 2").pack(side=LEFT)
-		Spinbox(menu3, from_=0, to=20, increment=1, textvariable=self.erodeElementSize2).pack(side=LEFT)
-
-		self.dilateElementSize2 = StringVar()
-		self.dilateElementSize2.set(10)
-		Label(menu3, text = "Dilate Size 2").pack(side=LEFT)
-		Spinbox(menu3, from_=0, to=15, increment=1, textvariable=self.dilateElementSize2).pack(side=LEFT)
-		
-		self.thresholdValue = StringVar()
-		self.thresholdValue.set(10)
-		Label(menu3, text = "Last Threshold").pack(side=LEFT)
-		Spinbox(menu3, from_=0, to=15, increment=1, textvariable=self.thresholdValue).pack(side=LEFT)
-		
+		self.dumpOneHue = IntVar()
+		Checkbutton(menu3, text="Dump first hue bin", variable=self.dumpOneHue).pack(side=LEFT)
 		
 		# Display video(s) row
 		videoRow1 = Frame(self)
@@ -218,10 +199,9 @@ class PointLightWalkerGUI(Tk):
 		# process the frame
 		result, step4, step3, step2, step1 = self.pointLightWalker.process(img, int(self.blurSigmaC.get()), int(self.erodeElementSizeC.get()), 
 																		   int(self.dilateElementSizeC.get()), int(self.thresholdValueC.get()),
-																		   int(self.cannyHi.get()), int(self.cannyLo.get()),
-																		   int(self.blurSigma1.get()), int(self.dilateElementSize1.get()),
-																		   int(self.erodeElementSize2.get()), int(self.dilateElementSize2.get()),
-																		   int(self.thresholdValue.get()), self.winfo_screenwidth(), self.winfo_screenheight())
+																		   int(self.hueBins.get()), int(self.hueSlices.get()),
+																		   int(self.waterShedDistance.get()), self.winfo_screenwidth(), self.winfo_screenheight(),
+																		   self.dumpOneHue.get())
 		# check to make sure we have something to display
 		# (motion detection usually needs to process more than one frame)
 		if result is not None:

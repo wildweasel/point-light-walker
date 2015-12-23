@@ -45,21 +45,20 @@ class PointLightWalker():
 				moments = cv2.moments(contours[maxIndex])
 				centroid = (int(moments['m10']/moments['m00']), int(moments['m01']/moments['m00']))		
 				
-				return centroid, contours, thresholded, maxIndex, foregroundMask
+				return centroid, contours, thresholded, maxIndex, foregroundMask, thresholded
 				
 			else:
-				return None, contours, thresholded, None, foregroundMask
+				return None, contours, thresholded, None, foregroundMask, thresholded
 
 
 		# for each frame...
-		def process(self, image, blurSigmaC, erodeElementSizeC, dilateElementSizeC, thresholdValueC, cannyHi, cannyLo, 
-					blurSigma1, dilateElementSize1, erodeElementSize2, dilateElementSize2, thresholdValue, imageWidth, imageHeight):
+		def process(self, image, blurSigmaC, erodeElementSizeC, dilateElementSizeC, thresholdValueC, hueBins, slices, watershedDistance, imageWidth, imageHeight, dumpFirstHue):
 			
 			# Run the motion detection and find the center of mass of the walker
-			centroid, contours, contourCentering, largestContour, motionDetect = self.findCenter(image, blurSigmaC, erodeElementSizeC, dilateElementSizeC, thresholdValueC)
+			centroid, contours, contourCentering, largestContour, motionDetect, erodeDilate = self.findCenter(image, blurSigmaC, erodeElementSizeC, dilateElementSizeC, thresholdValueC)
 						
 			# Morph the detect motion to reduce noise and beef it up a little
-			erodeDilate = self.erodeDilate(motionDetect.copy(), erodeElementSize2, dilateElementSize2)
+			#erodeDilate = self.erodeDilate(motionDetect.copy(), erodeElementSize2, dilateElementSize2)
 
 			# Create a grayscale image based on hue level
 			shifted = (cv2.cvtColor(image, cv2.COLOR_RGB2HSV).astype(int)*255/180).astype(np.uint8)
@@ -68,19 +67,13 @@ class PointLightWalker():
 			# Isolate the hue to motion detected regions only
 			hueIsolate = np.multiply(gray, erodeDilate>120)	
 			
-			# How many hue ranges do we want?
-			hueBins = 6
-			binSize = int(255/hueBins)
-			
-			# How many hue ranges do we want to keep?
-			slices = 3
-			
 			# How many pixels within the motion detected area fall within each hue range?
+			binSize = int(255/hueBins)
 			hist = cv2.calcHist([hueIsolate],[0],erodeDilate,[hueBins],[0,256])
 			
 			# We are going to have a binary mask for the location of each hue range within the motion detected area			
 			hueMasks = []
-			for x in [i[0] for i in sorted(enumerate(hist[:,0]), key=lambda x:x[1], reverse=True)][:slices]:
+			for x in [i[0] for i in sorted(enumerate(hist[:,0]), key=lambda x:x[1], reverse=True)][dumpFirstHue:slices]:
 				hueMasks.append(cv2.inRange(hueIsolate, x*binSize, (x+1)*binSize))
 			
 			# Also track the walker shape as a whole
