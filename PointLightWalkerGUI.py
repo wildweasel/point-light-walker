@@ -30,6 +30,8 @@ class PointLightWalkerGUI(Tk):
 		menu1.pack()
 		menu2 = Frame(self)
 		menu2.pack()
+		menu3 = Frame(self)
+		menu3.pack()
 		
 		#  Add a load button to the menu bar
 		loadButton = Button(menu1, text='Load Video Clip', command=self.loadVideo)
@@ -53,28 +55,65 @@ class PointLightWalkerGUI(Tk):
 		Spinbox(menu1, from_=0, to=1, increment=.1, textvariable=self.delay).pack(side=LEFT)
 		
 		# Initial Gaussian blur sigma level.  Kernel size auto-calculated
-		self.blurSigma = StringVar()
-		self.blurSigma.set(3)
-		Label(menu2, text = "Blur Sigma").pack(side=LEFT)
-		Spinbox(menu2, from_=0, to=15, increment=1, textvariable=self.blurSigma).pack(side=LEFT)
+		self.blurSigmaC = StringVar()
+		self.blurSigmaC.set(7)
+		Label(menu2, text = "Centroid Blur Sigma").pack(side=LEFT)
+		Spinbox(menu2, from_=0, to=15, increment=1, textvariable=self.blurSigmaC).pack(side=LEFT)
 
 		# Size of erode element for motion detect result.  Uses sqaure-shaped element
-		self.erodeElementSize = StringVar()
-		self.erodeElementSize.set(2)
-		Label(menu2, text = "Erode Size").pack(side=LEFT)
-		Spinbox(menu2, from_=0, to=20, increment=1, textvariable=self.erodeElementSize).pack(side=LEFT)
+		self.erodeElementSizeC = StringVar()
+		self.erodeElementSizeC.set(3)
+		Label(menu2, text = "Centroid Erode Size").pack(side=LEFT)
+		Spinbox(menu2, from_=0, to=20, increment=1, textvariable=self.erodeElementSizeC).pack(side=LEFT)
 
 		# Size of dilate element for motion detect result.  Uses sqaure-shaped element
-		self.dilateElementSize = StringVar()
-		self.dilateElementSize.set(10)
-		Label(menu2, text = "Dilate Size").pack(side=LEFT)
-		Spinbox(menu2, from_=0, to=15, increment=1, textvariable=self.dilateElementSize).pack(side=LEFT)
+		self.dilateElementSizeC = StringVar()
+		self.dilateElementSizeC.set(10)
+		Label(menu2, text = "Centroid Dilate Size").pack(side=LEFT)
+		Spinbox(menu2, from_=0, to=15, increment=1, textvariable=self.dilateElementSizeC).pack(side=LEFT)
 
 		# minimum value to survive post-dilation
+		self.thresholdValueC = StringVar()
+		self.thresholdValueC.set(20)
+		Label(menu2, text = "Centroid Threshold").pack(side=LEFT)
+		Spinbox(menu2, from_=0, to=40, increment=2, textvariable=self.thresholdValueC).pack(side=LEFT)
+		
+		
+		self.cannyLo = StringVar()
+		self.cannyLo.set(30)
+		Label(menu3, text = "Canny Lo Thresh").pack(side=LEFT)
+		Spinbox(menu3, from_=10, to=100, increment=5, textvariable=self.cannyLo).pack(side=LEFT)
+
+		self.cannyHi = StringVar()
+		self.cannyHi.set(60)
+		Label(menu3, text = "Canny Hi Thresh").pack(side=LEFT)
+		Spinbox(menu3, from_=10, to=300, increment=5, textvariable=self.cannyHi).pack(side=LEFT)
+		
+		self.blurSigma1 = StringVar()
+		self.blurSigma1.set(0)
+		Label(menu3, text = "Blur sigma 1").pack(side=LEFT)
+		Spinbox(menu3, from_=1, to=9, increment=2, textvariable=self.blurSigma1).pack(side=LEFT)
+
+		self.dilateElementSize1 = StringVar()
+		self.dilateElementSize1.set(2)
+		Label(menu3, text = "Dilate Size 1").pack(side=LEFT)
+		Spinbox(menu3, from_=0, to=15, increment=1, textvariable=self.dilateElementSize1).pack(side=LEFT)
+		
+		self.erodeElementSize2 = StringVar()
+		self.erodeElementSize2.set(2)
+		Label(menu3, text = "Erode Size 2").pack(side=LEFT)
+		Spinbox(menu3, from_=0, to=20, increment=1, textvariable=self.erodeElementSize2).pack(side=LEFT)
+
+		self.dilateElementSize2 = StringVar()
+		self.dilateElementSize2.set(10)
+		Label(menu3, text = "Dilate Size 2").pack(side=LEFT)
+		Spinbox(menu3, from_=0, to=15, increment=1, textvariable=self.dilateElementSize2).pack(side=LEFT)
+		
 		self.thresholdValue = StringVar()
-		self.thresholdValue.set(20)
-		Label(menu2, text = "Threshold").pack(side=LEFT)
-		Spinbox(menu2, from_=0, to=40, increment=2, textvariable=self.thresholdValue).pack(side=LEFT)
+		self.thresholdValue.set(10)
+		Label(menu3, text = "Last Threshold").pack(side=LEFT)
+		Spinbox(menu3, from_=0, to=15, increment=1, textvariable=self.thresholdValue).pack(side=LEFT)
+		
 		
 		# Display video(s) row
 		videoRow1 = Frame(self)
@@ -177,7 +216,12 @@ class PointLightWalkerGUI(Tk):
 		img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 		
 		# process the frame
-		result, step4, step3, step2, step1 = self.pointLightWalker.process(img, int(self.blurSigma.get()), int(self.erodeElementSize.get()), int(self.dilateElementSize.get()), int(self.thresholdValue.get()))
+		result, step4, step3, step2, step1 = self.pointLightWalker.process(img, int(self.blurSigmaC.get()), int(self.erodeElementSizeC.get()), 
+																		   int(self.dilateElementSizeC.get()), int(self.thresholdValueC.get()),
+																		   int(self.cannyHi.get()), int(self.cannyLo.get()),
+																		   int(self.blurSigma1.get()), int(self.dilateElementSize1.get()),
+																		   int(self.erodeElementSize2.get()), int(self.dilateElementSize2.get()),
+																		   int(self.thresholdValue.get()), self.winfo_screenwidth(), self.winfo_screenheight())
 		# check to make sure we have something to display
 		# (motion detection usually needs to process more than one frame)
 		if result is not None:
